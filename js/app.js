@@ -39,28 +39,29 @@ const goalMessageDiv = document.getElementById('goal-message');
 const userGoalsList = document.getElementById('user-goals-list');
 
 // --- Estrutura de Dados Local (Simulando o Banco de Dados) ---
-// Usaremos um único "usuário" armazenado no LocalStorage para simplificar.
-// Em um app real, cada usuário teria seus próprios dados.
+// Armazena todos os dados do "usuário logado" no LocalStorage.
 let userData = JSON.parse(localStorage.getItem('financasGamificadasData')) || {
-    isLoggedIn: false,
-    user: {
+    isLoggedIn: false, // Controla se o usuário está "logado" na sessão atual
+    user: { // Dados do usuário
         username: 'Convidado',
-        email: '', // O email não é usado para autenticação real, apenas para simular
+        email: '', // O email será usado como "identificador" para o login simulado
         balance: 0,
         points: 0,
         level: 1
     },
-    transactions: [],
-    goals: []
+    transactions: [], // Array de transações
+    goals: [] // Array de metas
 };
 
 // --- Funções de Persistência Local ---
+// Salva o objeto userData completo no localStorage
 function saveData() {
     localStorage.setItem('financasGamificadasData', JSON.stringify(userData));
 }
 
-// --- Funções de UI ---
+// --- Funções de UI (Display e Navegação) ---
 
+// Esconde todas as seções e mostra apenas a desejada
 function showSection(section) {
     const sections = [authSection, dashboardSection, transactionsSection, goalsSection];
     sections.forEach(s => s.style.display = 'none');
@@ -73,21 +74,23 @@ function showSection(section) {
     else if (section === goalsSection) goalsLink.classList.add('active');
 }
 
+// Controla a visibilidade dos elementos de navegação e autenticação
 function updateNavVisibility() {
     if (userData.isLoggedIn) {
         authSection.style.display = 'none';
-        navLinks.style.display = 'block';
-        logoutLink.style.display = 'inline';
-        showSection(dashboardSection); // Vai para o dashboard após login
+        navLinks.style.display = 'block'; // Mostra a navegação principal
+        logoutLink.style.display = 'inline'; // Mostra o botão de sair
+        showSection(dashboardSection); // Redireciona para o dashboard se logado
     } else {
-        authSection.style.display = 'block';
-        navLinks.style.display = 'none';
-        logoutLink.style.display = 'none';
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
+        authSection.style.display = 'block'; // Mostra a seção de autenticação
+        navLinks.style.display = 'none'; // Esconde a navegação principal
+        logoutLink.style.display = 'none'; // Esconde o botão de sair
+        loginForm.style.display = 'block'; // Mostra o formulário de login por padrão
+        registerForm.style.display = 'none'; // Esconde o formulário de registro
     }
 }
 
+// Limpa mensagens de erro ou informação
 function clearMessages() {
     loginErrorDiv.textContent = '';
     registerErrorDiv.textContent = '';
@@ -97,78 +100,80 @@ function clearMessages() {
     goalMessageDiv.classList.remove('error-message', 'info-message');
 }
 
+// Exibe uma mensagem de erro ou informação
 function displayMessage(element, message, type = 'info') {
-    clearMessages();
+    clearMessages(); // Limpa outras mensagens antes de exibir a nova
     element.textContent = message;
     element.classList.add(`${type}-message`);
 }
 
-// --- Funções de "Autenticação" Local (Simulação) ---
+// --- Funções de "Autenticação" Local (Simuladas) ---
+// O login é apenas para fins de simulação de sessão no localStorage
 function loginUser(email, password) {
     clearMessages();
-    // Para simplificar, qualquer login/senha será aceito, simulando um login de sucesso.
-    // Em um app real, você teria uma validação de credenciais aqui.
+    // Em um app real, aqui haveria validação de email/senha com um backend
+    // Como é local, qualquer email/senha serve para "logar"
     userData.isLoggedIn = true;
-    userData.user.email = email; // Atribui o email inserido para fins de exibição
-    saveData();
+    userData.user.email = email; // Define o email do usuário "logado"
+    saveData(); // Salva o estado de login
     updateNavVisibility();
     loadDashboardData();
 }
 
+// O registro é para simular a criação de um "novo usuário" no localStorage
 function registerUser(username, email, password) {
     clearMessages();
-    // Para simplificar, qualquer registro cria um "novo" usuário local.
-    // Em um app real, você verificaria se o email já existe, etc.
+    // Em um app real, aqui haveria validação se o email já existe, etc.
     userData.isLoggedIn = true;
     userData.user.username = username;
     userData.user.email = email;
     userData.user.balance = 0;
     userData.user.points = 0;
     userData.user.level = 1;
-    userData.transactions = []; // Novo usuário, transações vazias
-    userData.goals = [];       // Novo usuário, metas vazias
-    saveData();
-    updateNavVisibility();
-    loadDashboardData();
-    displayMessage(registerErrorDiv, 'Registro realizado com sucesso! Faça login.', 'info');
-    // Após registrar, geralmente se volta para a tela de login
-    showLoginLink.click(); 
-}
-
-function logoutUser() {
-    userData.isLoggedIn = false;
-    // Opcional: resetar dados do usuário para "zero" ao deslogar
-    // Para manter o progresso do usuário no mesmo navegador, não resetamos tudo.
-    // Se você quiser que o logout limpe tudo para o próximo "login", descomente as linhas abaixo.
-    /*
-    userData.user = { username: 'Convidado', email: '', balance: 0, points: 0, level: 1 };
     userData.transactions = [];
     userData.goals = [];
-    */
-    saveData(); // Salva o estado de logout
+    saveData(); // Salva os dados do novo usuário
+    updateNavVisibility();
+    loadDashboardData();
+    displayMessage(registerErrorDiv, 'Registro realizado com sucesso! Faça login para continuar.', 'info');
+    // Após registrar, pode-se levar para a tela de login
+    showLoginLink.click();
+}
+
+// Desconecta o usuário (apenas muda o estado isLoggedIn e salva)
+function logoutUser() {
+    userData.isLoggedIn = false;
+    // Opcional: Você pode optar por limpar todos os dados do usuário ao deslogar
+    // ou mantê-los para que voltem quando ele "logar" novamente.
+    // Para este exemplo, manteremos os dados persistentes mesmo deslogado,
+    // mas o usuário terá que "logar" para vê-los.
+    saveData();
     updateNavVisibility();
     showSection(authSection);
     displayMessage(loginErrorDiv, 'Você foi desconectado.', 'info');
 }
 
-// --- Funções de Manipulação de Dados (Substituem as chamadas de API) ---
+// --- Funções de Manipulação de Dados (Simulando API Backend) ---
 
+// Retorna os dados do usuário ativo
 function getMe() {
     return userData.user;
 }
 
+// Retorna todas as transações do usuário, ordenadas pela data (mais recente primeiro)
 function getTransactions() {
-    return userData.transactions.sort((a, b) => new Date(b.date) - new Date(a.date)); // Ordena por data
+    return userData.transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
+// Adiciona uma nova transação e atualiza o saldo/pontos do usuário
 function addTransaction(description, amount, type, category) {
     const newTransaction = {
-        id: Date.now().toString(), // ID simples baseado no timestamp para unicidade local
+        id: Date.now().toString(), // ID simples baseado no timestamp atual
         description,
         amount,
         type,
         category,
-        date: new Date().toISOString()
+        date: new Date().toISOString() // Data no formato ISO string
     };
     userData.transactions.push(newTransaction);
 
@@ -177,16 +182,17 @@ function addTransaction(description, amount, type, category) {
         userData.user.balance += amount;
     } else if (type === 'expense') {
         userData.user.balance -= amount;
-        userData.user.points += 5; // Ponto por registrar despesa
+        userData.user.points += 5; // Recompensa por registrar despesa
     }
-    checkLevelUp(); // Verifica se o usuário subiu de nível
+    checkLevelUp(); // Verifica se o usuário subiu de nível após a transação
     saveData();
     displayMessage(transactionMessageDiv, 'Transação adicionada com sucesso!', 'info');
-    loadDashboardData();
-    loadTransactions();
+    loadDashboardData(); // Recarrega os dados do dashboard
+    loadTransactions(); // Recarrega a lista completa de transações
     return newTransaction;
 }
 
+// Exclui uma transação e reverte o saldo/pontos
 function deleteTransaction(id) {
     const transactionIndex = userData.transactions.findIndex(t => t.id === id);
     if (transactionIndex > -1) {
@@ -196,9 +202,9 @@ function deleteTransaction(id) {
             userData.user.balance -= transaction.amount;
         } else if (transaction.type === 'expense') {
             userData.user.balance += transaction.amount;
-            userData.user.points = Math.max(0, userData.user.points - 5); // Reverte pontos
+            userData.user.points = Math.max(0, userData.user.points - 5); // Garante que pontos não fiquem negativos
         }
-        userData.transactions.splice(transactionIndex, 1);
+        userData.transactions.splice(transactionIndex, 1); // Remove a transação do array
         saveData();
         displayMessage(transactionMessageDiv, 'Transação removida com sucesso!', 'info');
         loadDashboardData();
@@ -208,20 +214,22 @@ function deleteTransaction(id) {
     }
 }
 
+// Retorna todas as metas do usuário, ordenadas pela data final
 function getGoals() {
     return userData.goals.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
 }
 
+// Cria uma nova meta
 function createGoal(name, targetAmount, endDate) {
     const newGoal = {
-        id: Date.now().toString(), // ID simples baseado no timestamp
+        id: Date.now().toString(),
         name,
         targetAmount,
         currentAmount: 0,
         startDate: new Date().toISOString(),
         endDate,
         isCompleted: false,
-        rewardPoints: 50 // Pontos por meta concluída
+        rewardPoints: 50 // Pontos ganhos ao completar a meta
     };
     userData.goals.push(newGoal);
     saveData();
@@ -231,19 +239,20 @@ function createGoal(name, targetAmount, endDate) {
     return newGoal;
 }
 
+// Atualiza uma meta (ex: adicionar progresso, marcar como completa)
 function updateGoal(id, dataToUpdate) {
     const goalIndex = userData.goals.findIndex(g => g.id === id);
     if (goalIndex > -1) {
         const goal = userData.goals[goalIndex];
-        const wasCompleted = goal.isCompleted;
+        const wasCompleted = goal.isCompleted; // Salva o estado anterior de conclusão
 
-        // Atualiza campos
+        // Atualiza os campos da meta
         Object.assign(goal, dataToUpdate);
 
         // Lógica de gamificação ao completar meta
-        if (goal.isCompleted && !wasCompleted) { // Se acabou de ser completada
+        if (goal.isCompleted && !wasCompleted) { // Se a meta acabou de ser marcada como completa
             userData.user.points += goal.rewardPoints;
-            checkLevelUp();
+            checkLevelUp(); // Verifica se o usuário subiu de nível
             displayMessage(goalMessageDiv, `Meta "${goal.name}" concluída! Você ganhou ${goal.rewardPoints} pontos!`, 'info');
         }
         saveData();
@@ -256,10 +265,11 @@ function updateGoal(id, dataToUpdate) {
     }
 }
 
+// Deleta uma meta
 function deleteGoal(id) {
     const goalIndex = userData.goals.findIndex(g => g.id === id);
     if (goalIndex > -1) {
-        userData.goals.splice(goalIndex, 1);
+        userData.goals.splice(goalIndex, 1); // Remove a meta do array
         saveData();
         displayMessage(goalMessageDiv, 'Meta removida com sucesso!', 'info');
         loadDashboardData();
@@ -270,24 +280,27 @@ function deleteGoal(id) {
 }
 
 // --- Lógica de Gamificação ---
+// Verifica se o usuário tem pontos suficientes para subir de nível
 function checkLevelUp() {
     const currentPoints = userData.user.points;
     const currentLevel = userData.user.level;
-    const pointsForNextLevel = currentLevel * 100; // Exemplo: 100 para nível 1, 200 para nível 2, etc.
+    // Ponto de corte para o próximo nível (ex: Nível 1 = 100pts, Nível 2 = 200pts, Nível 3 = 300pts)
+    const pointsForNextLevel = currentLevel * 100; 
 
     if (currentPoints >= pointsForNextLevel) {
         userData.user.level += 1;
-        // Opcional: resetar pontos para o próximo nível ou acumular
-        // userData.user.points -= pointsForNextLevel; // Se quiser que os pontos "gastem" para subir de nível
+        // Opcional: Você pode subtrair os pontos necessários para o nível atual
+        // userData.user.points -= pointsForNextLevel; // Para ter que acumular para o próximo nível
         displayMessage(dashboardSection.querySelector('.summary-cards'), `Parabéns! Você subiu para o Nível ${userData.user.level}!`, 'info');
-        saveData(); // Salva o novo nível
+        saveData();
     }
 }
 
 
 // --- Renderização de Dados na UI ---
 
-function loadDashboardData() {
+// Carrega e exibe os dados no dashboard
+async function loadDashboardData() {
     if (!userData.isLoggedIn) return;
 
     const user = getMe();
@@ -296,21 +309,25 @@ function loadDashboardData() {
     currentLevelSpan.textContent = user.level;
 
     const transactions = getTransactions();
-    renderTransactions(transactions.slice(0, 5), latestTransactionsList); // Apenas as 5 últimas no dashboard
+    // Exibe apenas as 5 últimas transações no dashboard
+    renderTransactions(transactions.slice(0, 5), latestTransactionsList); 
 
     const goals = getGoals();
-    renderGoals(goals.filter(goal => !goal.isCompleted), activeGoalsList); // Apenas metas ativas no dashboard
+    // Exibe apenas as metas ativas no dashboard
+    renderGoals(goals.filter(goal => !goal.isCompleted), activeGoalsList); 
 }
 
-function loadTransactions() {
+// Carrega e exibe todas as transações na seção de transações
+async function loadTransactions() {
     if (!userData.isLoggedIn) return;
 
     const transactions = getTransactions();
-    renderTransactions(transactions, transactionsList); // Todas as transações na seção de transações
+    renderTransactions(transactions, transactionsList);
 }
 
+// Função auxiliar para renderizar transações em uma lista específica
 function renderTransactions(transactions, targetList) {
-    targetList.innerHTML = ''; // Limpa a lista antes de renderizar
+    targetList.innerHTML = ''; // Limpa a lista existente
     if (transactions.length === 0) {
         targetList.innerHTML = '<li>Nenhuma transação encontrada.</li>';
         return;
@@ -318,11 +335,12 @@ function renderTransactions(transactions, targetList) {
 
     transactions.forEach(t => {
         const li = document.createElement('li');
-        li.classList.add(t.type); // Adiciona classe 'income' ou 'expense' para estilização
+        // Adiciona classe 'income' ou 'expense' para estilização CSS
+        li.classList.add(t.type); 
         li.innerHTML = `
             <span class="description">${t.description}</span>
             <span class="category">${t.category || 'Geral'}</span>
-            <span class="amount">R$ ${t.amount.toFixed(2)}</span>
+            <span class="amount">R$ ${parseFloat(t.amount).toFixed(2)}</span>
             <span class="date">${new Date(t.date).toLocaleDateString('pt-BR')}</span>
             <button class="delete-btn" data-id="${t.id}">Excluir</button>
         `;
@@ -340,13 +358,15 @@ function renderTransactions(transactions, targetList) {
     });
 }
 
-function loadGoals() {
+// Carrega e exibe todas as metas na seção de metas
+async function loadGoals() {
     if (!userData.isLoggedIn) return;
 
     const goals = getGoals();
-    renderGoals(goals, userGoalsList); // Todas as metas do usuário na seção de metas
+    renderGoals(goals, userGoalsList); // Todas as metas do usuário
 }
 
+// Função auxiliar para renderizar metas em uma lista específica
 function renderGoals(goals, targetList) {
     targetList.innerHTML = '';
     if (goals.length === 0) {
@@ -355,8 +375,9 @@ function renderGoals(goals, targetList) {
     }
 
     goals.forEach(g => {
+        // Calcula o progresso em porcentagem
         const progress = (g.currentAmount / g.targetAmount) * 100;
-        const progressBarWidth = Math.min(100, progress).toFixed(0);
+        const progressBarWidth = Math.min(100, progress).toFixed(0); // Garante que não ultrapasse 100%
         const remaining = (g.targetAmount - g.currentAmount).toFixed(2);
         const isCompleted = g.isCompleted || (g.currentAmount >= g.targetAmount);
 
@@ -364,7 +385,7 @@ function renderGoals(goals, targetList) {
         li.innerHTML = `
             <span class="name">${g.name}</span>
             <span class="dates">De: ${new Date(g.startDate).toLocaleDateString('pt-BR')} até: ${new Date(g.endDate).toLocaleDateString('pt-BR')}</span>
-            <span class="goal-status">Alvo: R$ ${g.targetAmount.toFixed(2)} | Progresso: R$ ${g.currentAmount.toFixed(2)}</span>
+            <span class="goal-status">Alvo: R$ ${parseFloat(g.targetAmount).toFixed(2)} | Progresso: R$ ${parseFloat(g.currentAmount).toFixed(2)}</span>
             <div class="progress-bar-container">
                 <div class="progress-bar" style="width: ${progressBarWidth}%;">
                     ${progressBarWidth}%
@@ -373,13 +394,13 @@ function renderGoals(goals, targetList) {
             <span class="goal-status">Faltam: R$ ${remaining}</span>
             <div class="goal-actions">
                 ${!isCompleted ? `<button class="add-progress-btn" data-id="${g.id}">Add Progresso</button>` : ''}
-                ${!isCompleted ? `<button class="complete-btn" data-id="${g.id}">Completar</button>` : '<span>Concluída!</span>'}
+                ${!isCompleted ? `<button class="complete-btn" data-id="${g.id}">Marcar como Concluída</button>` : '<span>Concluída!</span>'}
                 <button class="delete-btn" data-id="${g.id}">Excluir</button>
             </div>
         `;
         targetList.appendChild(li);
 
-        // Adiciona event listeners para os botões de meta
+        // Adiciona event listeners para os botões de ação da meta
         if (!isCompleted) {
             li.querySelector('.add-progress-btn')?.addEventListener('click', () => {
                 const amountToAdd = parseFloat(prompt('Quanto você quer adicionar ao progresso desta meta?'));
@@ -391,8 +412,8 @@ function renderGoals(goals, targetList) {
             });
 
             li.querySelector('.complete-btn')?.addEventListener('click', () => {
-                if (confirm('Marcar esta meta como concluída?')) {
-                    updateGoal(g.id, { isCompleted: true, currentAmount: g.targetAmount }); // Garante que o valor atual atinge o alvo
+                if (confirm('Tem certeza que deseja marcar esta meta como concluída?')) {
+                    updateGoal(g.id, { isCompleted: true, currentAmount: g.targetAmount }); // Garante que o valor atual atinja o alvo
                 }
             });
         }
@@ -408,7 +429,7 @@ function renderGoals(goals, targetList) {
 
 // --- Event Listeners Globais ---
 
-// Navegação
+// Navegação principal
 homeLink.addEventListener('click', (e) => {
     e.preventDefault();
     showSection(dashboardSection);
@@ -429,7 +450,7 @@ logoutLink.addEventListener('click', (e) => {
     logoutUser();
 });
 
-// Formulários de Autenticação
+// Troca entre formulários de login e registro
 showRegisterLink.addEventListener('click', (e) => {
     e.preventDefault();
     loginForm.style.display = 'none';
@@ -443,30 +464,30 @@ showLoginLink.addEventListener('click', (e) => {
     clearMessages();
 });
 
+// Submissão do formulário de login
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    // O email e a senha são apenas para simulação, não são validados ou armazenados de forma segura
+    const password = document.getElementById('login-password').value; // Senha não usada, mas mantida para UX
     loginUser(email, password);
 });
 
+// Submissão do formulário de registro
 registerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const username = document.getElementById('register-username').value;
     const email = document.getElementById('register-email').value;
-    const password = document.getElementById('register-password').value;
-    // O email e a senha são apenas para simulação
+    const password = document.getElementById('register-password').value; // Senha não usada, mas mantida para UX
     registerUser(username, email, password);
 });
 
-// Formulário de Transação
+// Submissão do formulário de adição de transação
 addTransactionForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const description = transactionDescriptionInput.value;
+    const description = transactionDescriptionInput.value.trim();
     const amount = parseFloat(transactionAmountInput.value);
     const type = transactionTypeSelect.value;
-    const category = transactionCategoryInput.value;
+    const category = transactionCategoryInput.value.trim();
 
     if (!description || isNaN(amount) || amount <= 0 || !type) {
         displayMessage(transactionMessageDiv, 'Por favor, preencha todos os campos corretamente (valor > 0).', 'error');
@@ -477,10 +498,10 @@ addTransactionForm.addEventListener('submit', (e) => {
     addTransactionForm.reset(); // Limpa o formulário após adicionar
 });
 
-// Formulário de Criação de Meta
+// Submissão do formulário de criação de meta
 createGoalForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const name = goalNameInput.value;
+    const name = goalNameInput.value.trim();
     const targetAmount = parseFloat(goalTargetAmountInput.value);
     const endDate = goalEndDateInput.value; // Formato YYYY-MM-DD
 
@@ -488,7 +509,8 @@ createGoalForm.addEventListener('submit', (e) => {
         displayMessage(goalMessageDiv, 'Por favor, preencha todos os campos da meta corretamente.', 'error');
         return;
     }
-    const today = new Date().toISOString().split('T')[0];
+    // Validação de data: não permitir data passada
+    const today = new Date().toISOString().split('T')[0]; // Pega a data de hoje no formato YYYY-MM-DD
     if (endDate < today) {
         displayMessage(goalMessageDiv, 'A data final não pode ser no passado.', 'error');
         return;
@@ -499,13 +521,11 @@ createGoalForm.addEventListener('submit', (e) => {
 });
 
 
-// --- Inicialização do Aplicativo ---
+// --- Inicialização da Aplicação ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Verifica se o usuário já estava logado (estado salvo no localStorage)
+    // Verifica o estado de login ao carregar a página
+    updateNavVisibility();
     if (userData.isLoggedIn) {
-        updateNavVisibility(); // Mostra as seções logadas
-        loadDashboardData();   // Carrega os dados do dashboard
-    } else {
-        showSection(authSection); // Mostra a seção de login/registro
+        loadDashboardData(); // Carrega os dados se o usuário já estiver "logado"
     }
 });

@@ -7,6 +7,7 @@
     --white-color: #fff;
     --red-color: #f44336; /* Vermelho para despesas/erros */
     --green-color: #28a745; /* Verde para receitas/sucesso */
+    --blue-color: #007bff; /* Azul para ações */
 }
 
 /* Base */
@@ -186,12 +187,12 @@ form p {
     flex: 1;
     min-width: 250px;
     text-align: center;
-    border-bottom: 4px solid var(--primary-color);
+    border-bottom: 4px solid var(--primary-color); /* Cor padrão */
 }
 
 .balance-card { border-bottom-color: var(--primary-color); }
 .points-card { border-bottom-color: var(--secondary-color); }
-.level-card { border-bottom-color: var(--red-color); /* Pode ser outra cor */ }
+.level-card { border-bottom-color: var(--blue-color); } /* Nível com cor azul */
 
 
 .summary-cards h3 {
@@ -317,7 +318,7 @@ form p {
     background-color: #218838;
 }
 .goal-list li .add-progress-btn {
-    background-color: #007bff; /* Azul */
+    background-color: var(--blue-color); /* Azul */
 }
 .goal-list li .add-progress-btn:hover {
     background-color: #0056b3;
